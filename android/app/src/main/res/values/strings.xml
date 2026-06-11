@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Gasino</string>
+    <string name="title_activity_main">Gasino</string>
+    <string name="package_name">com.gasino.app</string>
+    <string name="custom_url_scheme">com.gasino.app</string>
+</resources>

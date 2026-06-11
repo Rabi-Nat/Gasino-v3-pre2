@@ -1,0 +1,17 @@
+{
+  "ads": [
+    {
+      "id": "gasino_app_default",
+      "title": "اپلیکیشن گازینو - محاسبات تخصصی مهندسی",
+      "description": "جهت اسپانسری و تبلیغات با پشتیبانی در ارتباط باشید...",
+      "imageUrl": "/gasino_ad_banner.png",
+      "link": "/#",
+      "slogan": "سریع‌ترین ابزار محاسبات و شبیه‌سازی مهندسی",
+      "badge": "پیش‌فرض گازینو",
+      "clicks": 1450,
+      "views": 8920,
+      "isActive": true
+    }
+  ],
+  "sourceUrl": "https://docs.google.com/spreadsheets/d/1kUAL-piR4iSx956pdUp5I8eXCa1zGC28IZzDzR11KeM/edit?usp=drivesdk"
+}

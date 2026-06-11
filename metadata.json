@@ -1,0 +1,12 @@
+{
+  "name": "Gasino-v3-premium2",
+  "short_name": "Gasino",
+  "description": "ابزار محاسبات مهندسی تاسیسات مکانیکی",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#f8fafc",
+  "requestFramePermissions": [
+    "web-share"
+  ]
+}
