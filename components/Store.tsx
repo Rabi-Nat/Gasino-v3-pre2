@@ -36,7 +36,7 @@ import { Share } from '@capacitor/share';
 interface Product {
   id: string;
   name: string;
-  unit: 'branch' | 'piece';
+  unit: 'branch' | 'piece' | 'pack';
   category: 'pipe' | 'elbow' | 'tee' | 'reducer' | 'valve' | 'nipple' | 'clamp' | 'accessory';
   basePrice?: number; // Placeholder for future use
 }
@@ -235,13 +235,13 @@ const PRODUCTS: Product[] = [
   { id: 'c-212-yl', name: 'بست زرد ۲ ۱/۲ اینچ', unit: 'piece', category: 'clamp' },
 
   // Accessories (لوازم جانبی)
-  { id: 'acc-1', name: 'سیم جوش', unit: 'piece', category: 'accessory' },
+  { id: 'acc-1', name: 'سیم جوش', unit: 'pack', category: 'accessory' },
   { id: 'acc-2', name: 'نوار تفلون', unit: 'piece', category: 'accessory' },
   { id: 'acc-3', name: 'نوار سیتکو', unit: 'piece', category: 'accessory' },
   { id: 'acc-4', name: 'نوار پرایمر', unit: 'piece', category: 'accessory' },
   { id: 'acc-5', name: 'پرایمر مایع', unit: 'piece', category: 'accessory' },
   { id: 'acc-6', name: 'رنگ ۲۵۰گرم', unit: 'piece', category: 'accessory' },
-  { id: 'acc-7', name: 'پیچ و رولپلاک', unit: 'piece', category: 'accessory' },
+  { id: 'acc-7', name: 'پیچ و رولپلاک (بسته ی۴۵عدد)', unit: 'pack', category: 'accessory' },
   { id: 'acc-8', name: 'صفحه پروفیل بر', unit: 'piece', category: 'accessory' },
   { id: 'acc-9', name: 'صفحه استیل بر', unit: 'piece', category: 'accessory' },
   { id: 'acc-10', name: 'مل', unit: 'piece', category: 'accessory' },
@@ -666,7 +666,7 @@ export const Store: React.FC = () => {
         message += `<b>📋 لیست کالاها:</b>\n`;
         
         cartItems.forEach((item, index) => {
-          const unitLabel = item.unit === 'branch' ? 'شاخه' : 'عدد';
+          const unitLabel = item.unit === 'branch' ? 'شاخه' : item.unit === 'pack' ? 'بسته' : 'عدد';
           message += `${index + 1}. ${item.name}: ${item.quantity} ${unitLabel}\n`;
         });
 
@@ -781,7 +781,7 @@ export const Store: React.FC = () => {
                       <td className="py-5 font-bold text-slate-700">{product.name}</td>
                       <td className="py-5 font-black text-blue-600">{item.quantity}</td>
                       <td className="py-5 text-slate-500 text-center">
-                        {product.unit === 'branch' ? 'شاخه' : 'عدد'}
+                        {product.unit === 'branch' ? 'شاخه' : product.unit === 'pack' ? 'بسته' : 'عدد'}
                       </td>
                     </tr>
                   );
@@ -1097,7 +1097,7 @@ export const Store: React.FC = () => {
                                       {product.name}
                                     </p>
                                     <p className="text-[10px] text-slate-400 mt-0.5">
-                                       واحد: {product.unit === 'branch' ? 'شاخه' : 'تعداد'}
+                                       واحد: {product.unit === 'branch' ? 'شاخه' : product.unit === 'pack' ? 'بسته' : 'تعداد'}
                                     </p>
                                   </div>
                                 </div>
@@ -1168,7 +1168,7 @@ export const Store: React.FC = () => {
                   <div key={item.productId} className="group flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all">
                     <div>
                       <p className="font-bold text-xs text-slate-700">{product.name}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{item.quantity} {product.unit === 'branch' ? 'شاخه' : 'عدد'}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{item.quantity} {product.unit === 'branch' ? 'شاخه' : product.unit === 'pack' ? 'بسته' : 'عدد'}</p>
                     </div>
                     <button 
                       onClick={() => toggleProduct(product.id)}

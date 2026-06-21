@@ -38,7 +38,8 @@ import {
   AlertCircle,
   Calendar,
   KeyRound,
-  ArrowUpRight
+  ArrowUpRight,
+  Layers
 } from 'lucide-react';
 import { PipeCalculator } from './components/PipeCalculator';
 import { Ventilation } from './components/Ventilation';
@@ -49,7 +50,7 @@ import { PriceList } from './components/PriceList';
 import { ContactUs } from './components/ContactUs';
 import { Store } from './components/Store';
 import { GasTest } from './components/GasTest';
-import { IsometricDesigner } from './components/IsometricDesigner';
+import { DraftingSection } from './components/DraftingSection';
 
 // Firefighting Components
 import { WaterSystem } from './components/WaterSystem';
@@ -64,7 +65,7 @@ import { AdsSection } from './components/AdsSection';
 import { getProxiedImageUrl } from './utils';
 
 type SectionId = 'gas' | 'fire' | 'plumbing' | 'hvac';
-type TabId = 'pipe' | 'ventilation' | 'meter' | 'valve' | 'safety' | 'price' | 'isometric' | 'contact' | 'store' | 'test' | 'water' | 'firepipe' | 'extinguisher' | 'pump' | 'plumbing' | 'plumbing_reservoir' | 'plumbing_rainwater' | 'plumbing_test' | 'hvac_load' | 'hvac_duct' | 'hvac_pipe' | 'hvac_test';
+type TabId = 'pipe' | 'ventilation' | 'meter' | 'valve' | 'safety' | 'price' | 'isometric' | 'plan' | 'drafting' | 'contact' | 'store' | 'test' | 'water' | 'firepipe' | 'extinguisher' | 'pump' | 'plumbing' | 'plumbing_reservoir' | 'plumbing_rainwater' | 'plumbing_test' | 'hvac_load' | 'hvac_duct' | 'hvac_pipe' | 'hvac_test';
 
 const sectionBackgrounds: Record<SectionId, string> = {
   gas: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80',
@@ -82,6 +83,8 @@ const App: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showSectionSelector, setShowSectionSelector] = useState(false);
+  
+  const isInitialHistoryLoadRef = useRef(true);
   
   // Quick Dashboard Unit Converter States
   const [quickConvType, setQuickConvType] = useState<'pressure' | 'power'>('pressure');
@@ -167,6 +170,73 @@ const App: React.FC = () => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }, [isDark, hasSelectedSection]);
 
+  // Sync React navigation state changes back to browser history
+  useEffect(() => {
+    // Current depth calculation
+    let currentDepth = 0;
+    if (hasSelectedSection) currentDepth++;
+    if (showGuide) currentDepth++;
+
+    let historyDepth = 0;
+    try {
+      historyDepth = window.history.state?.depth || 0;
+    } catch (e) {
+      // In restricted sandboxed environments, history object may not be accessible or throws
+      return;
+    }
+
+    if (currentDepth > historyDepth) {
+      try {
+        window.history.pushState({ depth: currentDepth }, '');
+      } catch (e) {
+        console.warn('history.pushState blocked in sandbox:', e);
+      }
+    } else if (currentDepth < historyDepth) {
+      if (isInitialHistoryLoadRef.current) {
+        // Skip going backward on initial load if we have leftover session state
+        isInitialHistoryLoadRef.current = false;
+        return;
+      }
+      const diff = historyDepth - currentDepth;
+      try {
+        window.history.go(-diff);
+      } catch (e) {
+        console.warn('history.go blocked in sandbox:', e);
+      }
+    }
+  }, [hasSelectedSection, showGuide]);
+
+  // Manage browser history to intercept the hardware back button (Capacitor/Android & Browser back button support)
+  useEffect(() => {
+    // Inject initial history state so we have a baseline
+    try {
+      if (!window.history.state || window.history.state.depth === undefined) {
+        window.history.replaceState({ depth: 0 }, '');
+      }
+    } catch (e) {
+      console.warn('history.replaceState blocked in sandbox:', e);
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      const targetDepth = state && typeof state.depth === 'number' ? state.depth : 0;
+      
+      // Update React state according to the target history depth
+      if (targetDepth === 0) {
+        setHasSelectedSection(false);
+        setShowGuide(false);
+      } else if (targetDepth === 1) {
+        // If we popped back to depth 1, close the Guide but keep section active
+        setShowGuide(false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
   // Support internal app links from ads / remote config
   useEffect(() => {
     const handleNavigation = (e: Event) => {
@@ -184,6 +254,9 @@ const App: React.FC = () => {
         'test': { section: 'gas', tab: 'test' },
         'price': { section: 'gas', tab: 'price' },
         'contact': { section: 'gas', tab: 'contact' },
+        'drafting': { section: 'gas', tab: 'drafting' },
+        'plan': { section: 'gas', tab: 'drafting' },
+        'isometric': { section: 'gas', tab: 'drafting' },
         
         'water': { section: 'fire', tab: 'water' },
         'firepipe': { section: 'fire', tab: 'firepipe' },
@@ -214,12 +287,12 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const showToast = (msg: string) => {
+  const showToast = React.useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(prev => prev === msg ? null : prev);
     }, 3000);
-  };
+  }, []);
 
   const handleShareApp = () => {
     if (navigator.share) {
@@ -254,12 +327,12 @@ const App: React.FC = () => {
     { id: 'pipe' as TabId, label: 'سایزینگ لوله‌کشی', icon: Ruler, component: PipeCalculator },
     { id: 'ventilation' as TabId, label: 'تهویه و دریچه', icon: Wind, component: Ventilation },
     { id: 'meter' as TabId, label: 'کنتور', icon: Gauge, component: MeterSpecs },
+    { id: 'drafting' as TabId, label: 'نقشه کشی', icon: Layers, component: DraftingSection },
     { id: 'valve' as TabId, label: 'فواصل شیرآلات', icon: Wrench, component: ValveInstallation },
     { id: 'safety' as TabId, label: 'فواصل ایمنی', icon: ShieldCheck, component: ApplianceDistance },
     { id: 'store' as TabId, label: 'فروشگاه ملزومات', icon: StoreIcon, component: Store },
     { id: 'test' as TabId, label: 'تست استقامت', icon: FlaskConical, component: GasTest },
     { id: 'price' as TabId, label: 'تعرفه خدمات', icon: Banknote, component: PriceList },
-    { id: 'isometric' as TabId, label: 'طراحی ایزومتریک', icon: ArrowUpRight, component: IsometricDesigner },
     { id: 'contact' as TabId, label: 'تماس با ما', icon: MessageSquare, component: ContactUs },
   ];
 
@@ -1367,7 +1440,7 @@ const App: React.FC = () => {
                        tab.id === 'hvac_load' ? 'بار تهویه' :
                        tab.id === 'hvac_duct' ? 'کانال تهویه' :
                        tab.id === 'hvac_pipe' ? 'سایز لوله' :
-                       tab.id === 'isometric' ? 'ایزومتریک' :
+                       tab.id === 'drafting' ? 'نقشه کشی' :
                        
                        tab.id === 'hvac_test' ? 'آزمون‌ها' :
                        tab.label.split(' ')[0]}

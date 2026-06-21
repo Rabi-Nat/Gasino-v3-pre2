@@ -163,7 +163,7 @@ export const AdsSection: React.FC<AdsSectionProps> = ({ variant = 'banner', onSh
       const isParamAdminTrue = params.get('admin') === 'true' || params.get('manage') === 'true';
       const isParamAdminFalse = params.get('admin') === 'false' || params.get('admin') === '0';
       
-      if (isParamAdminTrue) {
+      if (isParamAdminTrue && !isAdminAuthorized) {
         setIsAdminAuthorized(true);
         try {
           localStorage.setItem('gasino_admin_unlocked', 'true');
@@ -171,7 +171,7 @@ export const AdsSection: React.FC<AdsSectionProps> = ({ variant = 'banner', onSh
         if (onShowToast) {
           onShowToast('پنل مدیریت فعال و در منوی تنظیمات نمایان شد ✨');
         }
-      } else if (isParamAdminFalse) {
+      } else if (isParamAdminFalse && isAdminAuthorized) {
         setIsAdminAuthorized(false);
         try {
           localStorage.removeItem('gasino_admin_unlocked');
@@ -181,7 +181,7 @@ export const AdsSection: React.FC<AdsSectionProps> = ({ variant = 'banner', onSh
         }
       }
     }
-  }, [onShowToast]);
+  }, [onShowToast, isAdminAuthorized]);
 
   // Listen to custom unlock and lock events from brand clicks
   useEffect(() => {
